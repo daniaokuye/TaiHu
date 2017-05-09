@@ -1,6 +1,6 @@
 #encoding:utf-8
 
-from TH.Image import cRaster
+from Image import cRaster
 import numpy as np
 
 if __name__ == "__main__":
