@@ -6,10 +6,11 @@ from noise_rid import noiseRid
 
 
 class tex:
-    def __init__(self,inputfile,ewi):
+    def __init__(self,inputfile,ewi,vertical=True):
         self.IMG = cRaster()
         self.inputfile=inputfile
         self.ewi=ewi
+        self.vertical=vertical
         data=self.readImg(self.inputfile)
         self.limit=np.std(data)#应该有更好的办法，先用经验值替代，另外数据对此阈值不敏感，因为差异比较大3000
         
@@ -17,14 +18,14 @@ class tex:
         self.selectedZone(data)
         
         
-    def readImg(self,file,vertical=True):
+    def readImg(self,file):
         '打开影像，如需要则旋转影像'
         Numdata=self.IMG.Iread(file)#return a tuple:im_data,im_geotrans,im_proj
         self.proj=Numdata[1:]
         data=Numdata[0]
         if data.dtype==np.int16:
             data=data.astype(np.int32)
-        if vertical: data=np.swapaxes(data,0,1)
+        if self.vertical: data=np.swapaxes(data,0,1)
         return data
     
     def smooth(self,data,fusionCol=2,fusionLine=1):
@@ -124,15 +125,15 @@ class tex:
 
             if l%500 == 0:
                 print l,'l'       
-        outfile=self.ewi.split('.')
+        outfile=self.inputfile.split('.')
         outfile=outfile[0]+'_out.'+outfile[-1]
-        print 'the out file is :',outfile
-        self.outPut(extract_data,per_data,mnf_data,outfile,vertical=True)
+        self.out=outfile
+        self.outPut(extract_data,per_data,mnf_data,outfile)
             
             
-    def outPut(self,extract_data,per_data,mnf_data,outfile,vertical=True):    
+    def outPut(self,extract_data,per_data,mnf_data,outfile):    
         out=np.concatenate([extract_data[np.newaxis,:],per_data[np.newaxis,:],mnf_data[np.newaxis,:]],axis=0)
-        if vertical: out=np.swapaxes(out,1,2)#翻转123-3
+        if self.vertical: out=np.swapaxes(out,1,2)#翻转123-3
         # mnf_data=np.swapaxes(mnf_data,0,1)
         # print 'now',np.min(data)
         c=[out]+list(self.proj)+[outfile]
