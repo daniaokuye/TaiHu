@@ -20,8 +20,8 @@ class MyWindow(QtGui.QWidget):
         VerticalAction = QtGui.QPushButton('Vertical')
         HorizontalAction = QtGui.QPushButton('Horizontal')
         
-        Action1 = QtGui.QPushButton('Angle 90',self)
-        Action2 = QtGui.QPushButton('Angle 0',self)
+        Action1 = QtGui.QPushButton('Angle 270',self)
+        Action2 = QtGui.QPushButton('Angle 180',self)
         about= QtGui.QPushButton('about',self)
         
         grid = QtGui.QGridLayout()
@@ -70,7 +70,7 @@ class MyWindow(QtGui.QWidget):
         sender=self.sender()
         t=sender.text()
         ewi=unicode(self.EWIEdit.text().toUtf8(), 'utf-8', 'ignore').encode('utf-8')
-        if t=='Angle 90':
+        if t=='Angle 270':
             V = unicode(self.VerticalEdit.text().toUtf8(), 'utf-8', 'ignore').encode('utf-8')
             if V==''or ewi =='':QtGui.QMessageBox.about(self, "About", 'please select directional fileter image and EWI')
             print ewi,'\n',V
@@ -78,7 +78,7 @@ class MyWindow(QtGui.QWidget):
             out=texture.out
             if out:QtGui.QMessageBox.about(self, "About", 'Done : '+out)
             
-        elif t=='Angle 0':
+        elif t=='Angle 180':
             print repr(self.HorizontalEdit.text())
             H= unicode(self.HorizontalEdit.text().toUtf8(), 'utf-8', 'ignore').encode('utf-8')
             if H=='' or ewi =='':QtGui.QMessageBox.about(self, "About", 'please select directional fileter image and EWI')  
@@ -88,9 +88,9 @@ class MyWindow(QtGui.QWidget):
             if out:QtGui.QMessageBox.about(self, "About", 'Done : '+out)
             
         else:
-            msg = "select Path of image:\n\n\t* EWI:  water index\n\t* Vertical: directional convolution with angle '90' \
-                    \n\t* Horizontal:   directional convolution with angle '0'\nexecute with each image:\n \
-                    \n\t* Angle 90:execute with EWI and Vertical\n\t* Angle 0:execute with EWI and Horizontal"
+            msg = "select Path of image:\n\n\t* EWI:  water index\n\t* Vertical: directional convolution with angle '270' \
+                    \n\t* Horizontal:   directional convolution with angle '180'\nexecute with each image:\n \
+                    \n\t* Angle 270:execute with EWI and Vertical\n\t* Angle 180:execute with EWI and Horizontal"
             QtGui.QMessageBox.about(self, "About", msg)        
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
