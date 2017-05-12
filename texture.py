@@ -88,7 +88,7 @@ class tex:
                 start=i#如果程序能够进入while循环，则，start为
                 while True:
                     temp=dataL[i+1] - dataL[i]#梯度temp
-                    if (temp<0 or i>=col-2):break
+                    if (temp<=0 or i>=col-2):break
                     i=i+1
                 end=i
                 if(start!=end):

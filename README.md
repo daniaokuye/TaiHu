@@ -20,5 +20,6 @@ water index:
 directional convolutions:
     * the directional filter can be found in ENVI:
     * Filter -> Convolutions and Morphology Tool -> Directional
-    * only two directions were used : 0 and 90
+    * only two directions were used : 180 and 270
+    
     
