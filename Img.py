@@ -32,7 +32,7 @@ class cRaster:
     def Iwrite(self,*var):
         'wirte data to image file'
         ImData,ImGeoTrans,ImProj,filename = var
-        print 'who is use it:',__name__
+        print 'saving the image by the procedure:',__name__
         if 'int8' in ImData.dtype.name:
             datatype = gdal.GDT_Byte
         elif 'int16' in ImData.dtype.name:
@@ -58,12 +58,12 @@ class cRaster:
         del dataset
         
 if __name__ == "__main__":
-    filename = "D:\\PYTHON\\fdem.tif"
-    savefile = "D:\\PYTHON\\shp\\station_shp.tif"
+    filename = "D:/modisNew/proposedMethod/d0.tif"
+    #savefile = "D:\\PYTHON\\shp\\station_shp.tif"
     a=cRaster()
     b=a.Iread(filename)
-    c=[b[0]]+list(b[1:])+[savefile]
-    a.Iwrite(*c)
+    #c=[b[0]]+list(b[1:])+[savefile]
+    #a.Iwrite(*c)
 
     
     

@@ -1,6 +1,6 @@
 #encoding:utf-8
 
-from Image import cRaster
+from Img import cRaster
 import numpy as np
 
 if __name__ == "__main__":
@@ -157,7 +157,8 @@ class noiseRid:
             
     def percent(self,adjust):
         noWater = np.min(adjust)#非水体
-        Water = 0.0#np.max(adjust)#水体
+        Water = 0.0 if np.max(adjust)>0 else np.max(adjust)#np.max(adjust)#水体
+        if Water < -0.2: Water=-0.2
         ratio = 1.0*(adjust-noWater)/(Water-noWater)
         ratio = np.where(ratio > 1, 1.0, ratio)
         ratio = np.where(ratio < 0, 0.0, ratio)

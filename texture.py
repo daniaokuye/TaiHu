@@ -1,16 +1,17 @@
 #coding:utf-8
 
 import numpy as np
-from Image import cRaster
+from Img import cRaster
 from noise_rid import noiseRid
 
 
 class tex:
-    def __init__(self,inputfile,ewi,vertical=True):
+    def __init__(self,inputfile,ewi,dir):
+        'inputfile: the input file;ewi:enhanced water index;dir: the direction of filter'
         self.IMG = cRaster()
         self.inputfile=inputfile
         self.ewi=ewi
-        self.vertical=vertical
+        self.dir=dir
         data=self.readImg(self.inputfile)
         self.limit=np.std(data)#应该有更好的办法，先用经验值替代，另外数据对此阈值不敏感，因为差异比较大3000
         
@@ -25,10 +26,13 @@ class tex:
         data=Numdata[0]
         if data.dtype==np.int16:
             data=data.astype(np.int32)
-        if self.vertical: data=np.swapaxes(data,0,1)
+        if self.dir==270: data=np.swapaxes(data,0,1)
+        elif self.dir==90:data=np.swapaxes(data[::-1,:],0,1)
+        elif self.dir==0:data=data[:,::-1]
+        else:pass
         return data
     
-    def smooth(self,data,fusionCol=2,fusionLine=1):
+    def smooth(self,data,fusionCol=3,fusionLine=1):
         '平缓普通区域的差异,fusionCol=2#列上的大小,fusionLine=1#行上的大小'
         new_data=data#这个计算并存储的是把纹理暗区模糊化的数据
         line,col=data.shape
@@ -52,7 +56,7 @@ class tex:
                 LMin=np.min(limit_zone)
                 LMax=np.max(limit_zone)
                 LMean=np.mean(limit_zone)
-                if(LMean-LMin>1.6*self.limit or LMax-LMean>1.6*self.limit):#后半句其实没用发现了没
+                if(LMean-LMin>1.6*self.limit):#which is used to protect the zone not being smoothed
                     Ldiv=0.1
                 else:
                     Ldiv=1
@@ -65,6 +69,8 @@ class tex:
             if l%500 == 0:
                 print l
         return new_data
+        
+        
 
     def selectedZone(self,data):
         '''特点：1.极小值小于0；2.区间是极小值到极大值；3.变化陡峭
@@ -74,6 +80,7 @@ class tex:
         slop_data=data*0
         ratioD=self.readImg(self.ewi)#读取EWI影像
         
+        #these three can be output as imagery
         mnf_data=ratioD#需要做调整的ewi
         per_data=data*0.0#用来存储水体占比
         extract_data = data.astype(np.int)*0
@@ -103,7 +110,7 @@ class tex:
                     
                     
                     reflect=list(ratioD[l,start:end+1])
-                    '对符合要求的区域进行“恢复”计算'
+                    #'对符合要求的区域进行“恢复”计算'
                     mnf = Noise.mnf(reflect, list(zone))
                     #调整值落在【-1,1】之间。
                     adjust = np.where(mnf < -1, -1, mnf)
@@ -128,16 +135,58 @@ class tex:
         outfile=self.inputfile.split('.')
         outfile=outfile[0]+'_out.'+outfile[-1]
         self.out=outfile
-        self.outPut(extract_data,per_data,mnf_data,outfile)
+        self.outPut(data,per_data,mnf_data,outfile)#extract_data
             
             
     def outPut(self,extract_data,per_data,mnf_data,outfile):    
         out=np.concatenate([extract_data[np.newaxis,:],per_data[np.newaxis,:],mnf_data[np.newaxis,:]],axis=0)
-        if self.vertical: out=np.swapaxes(out,1,2)#翻转123-3
+        
+        if self.dir==270: out=np.swapaxes(out,1,2)
+        elif self.dir==90:out=np.swapaxes(out,1,2);out=out[:,::-1,:]
+        elif self.dir==0:out=out[:,:,::-1]
+        else:pass
+        
         # mnf_data=np.swapaxes(mnf_data,0,1)
         # print 'now',np.min(data)
         c=[out]+list(self.proj)+[outfile]
         self.IMG.Iwrite(*c)  
+        
+    
+class postProcedure:
+    def __init__(self):
+        self.IMG = cRaster()
+        self.proj=[]
+        
+    
+    def finalImage(self,outFile):
+        d=np.array(0)
+        for file in outFile:
+            print file
+            Numdata=self.IMG.Iread(file)#return a tuple:im_data,im_geotrans,im_proj
+            data=Numdata[0]
+            if len(self.proj)==0: self.proj=Numdata[1:]
+            if d.shape:d+=data
+            else:d=data
+        d=d/4
+        outPut=outFile[0] if outFile[0] else self.out
+        outPut=outPut.split('.')
+        outPut=outPut[0]+'_final_.'+outPut[-1]
+        c=[d[1:,:,:]]+list(self.proj)+[outPut]
+        self.IMG.Iwrite(*c)     
+        self.final=outPut
+    
+    def thres(self,threshold):
+        Numdata=self.IMG.Iread(self.final)#return a tuple:im_data,im_geotrans,im_proj
+        data=Numdata[0]#the type of data's number is float
+        data[1,:,:]=data[1,:,:]>threshold
+        data[0,:,:]*=data[1,:,:]
+        data= np.min(data,axis=0)
+        
+        outPut=self.final.split('.')
+        outPut=outPut[0]+repr(threshold)+'.'+outPut[-1]
+        c=[data[1:,:,:]]+list(self.proj)+[outPut]
+        self.IMG.Iwrite(*c) 
+        
         
 if __name__ == "__main__":
     inputfile ='D:/360Downloads/test/beiJ_90_new.tif'   #one result of directional spatial opertor
